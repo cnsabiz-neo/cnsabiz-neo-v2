@@ -1,0 +1,138 @@
+@import 'tailwindcss';
+
+@theme {
+	/* UI · 헤더 · 버튼 · 숫자 → Pretendard */
+	--font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+	/* 본문 · 설명 · 스토리 → 본고딕(Noto Sans KR) */
+	--font-body: 'Noto Sans KR', 'Source Han Sans KR', sans-serif;
+	/* 와디즈 브랜드 컬러 — 티어(teal) */
+	--color-brand: #00C4C4;
+	--color-brand-hover: #00AFAF;
+	--color-brand-light: #E6F9F9;
+	/* 달성률 강조 */
+	--color-achieve: #00C4C4;
+	/* 뱃지/특가 강조 */
+	--color-accent: #00C4C4;
+	/* 텍스트 */
+	--color-text-primary: #1A1A1A;
+	--color-text-secondary: #555555;
+	--color-text-muted: #999999;
+	/* 경계선 */
+	--color-border: #EBEBEB;
+	--color-border-light: #F4F4F4;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+/* 기본 UI 전체 → Pretendard */
+body {
+	font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #1A1A1A;
+	background: #fff;
+	letter-spacing: -0.01em;
+}
+
+/* 본문·설명·스토리 → 본고딕(Noto Sans KR) */
+.font-body,
+.story-content,
+p.desc,
+article p,
+.project-story {
+	font-family: 'Noto Sans KR', 'Source Han Sans KR', sans-serif;
+	letter-spacing: 0;
+	line-height: 1.85;
+}
+
+/* 숫자·달성률은 Pretendard로 명시적 고정 */
+.font-ui,
+.rate-num {
+	font-family: 'Pretendard Variable', 'Pretendard', sans-serif;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ─── 스크롤바 숨기기 ─── */
+.scrollbar-hide {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+/* ─── 진행률 바 애니메이션 ─── */
+@keyframes progress-fill {
+	from { width: 0%; }
+}
+.animate-progress {
+	animation: progress-fill 0.8s ease-out forwards;
+}
+
+/* ─── 라인 클램프 ─── */
+.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* ─── 카드 호버 효과 ─── */
+.card-hover {
+	/* hover 효과 제거 */
+}
+
+/* ─── 와디즈 브랜드 버튼 ─── */
+/* ─── 브랜드 아웃라인 버튼 ─── */
+.btn-brand {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.4rem 1rem;
+	border-radius: 4px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	border: 1.5px solid #00C4C4;
+	color: #00C4C4;
+	background: transparent;
+	transition: background 0.15s, color 0.15s;
+	white-space: nowrap;
+}
+.btn-brand:hover {
+	background: #00C4C4;
+	color: #fff;
+}
+
+/* ─── 브랜드 솔리드 버튼 ─── */
+.btn-brand-solid {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.5rem 1.25rem;
+	border-radius: 4px;
+	font-size: 0.875rem;
+	font-weight: 700;
+	border: none;
+	color: #fff;
+	background: #00C4C4;
+	transition: background 0.15s;
+	white-space: nowrap;
+}
+.btn-brand-solid:hover {
+	background: #00AFAF;
+}
+
+/* ─── 티어 배경 섹션 ─── */
+.bg-brand-light {
+	background: linear-gradient(135deg, #E6FAFA 0%, #F0FDFD 100%);
+}
+
+/* ─── 포커스 링 ─── */
+input:focus, textarea:focus, select:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px #00C4C440;
+	border-color: #00C4C4 !important;
+}
+
+/* ─── 슬라이더 트랜지션 ─── */
+.hero-slide {
+	transition: opacity 0.4s ease;
+}
