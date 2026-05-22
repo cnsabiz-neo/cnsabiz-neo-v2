@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { MARKET_SUPABASE_SERVICE_KEY } from '$env/static/private';
-import { PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY } from '$env/static/public';
+import { PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY } from '$env/dynamic/public';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import type { MarketItem } from '$lib/supabase/market';

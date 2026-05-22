@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
 	PUBLIC_MARKET_SUPABASE_URL,
 	PUBLIC_MARKET_SUPABASE_ANON_KEY
-} from '$env/static/public';
+} from '$env/dynamic/public';
 
 /** 브라우저용 — 읽기 전용 공개 데이터 */
 export const marketSupabase = createClient(
