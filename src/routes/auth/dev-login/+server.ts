@@ -4,8 +4,8 @@
  */
 import { json, error } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import { PUBLIC_SUPABASE_URL } from '$env/dynamic/public';
+import { SUPABASE_SERVICE_ROLE_KEY } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
 const DEV_EMAIL = 'dev@keunsabiz.kr';

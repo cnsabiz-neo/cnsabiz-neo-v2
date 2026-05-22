@@ -26,6 +26,9 @@
 	let isLiked = $state(liked);
 	let likeLoading = $state(false);
 
+	// prop이 바뀌면 내부 상태 동기화 (페이지 이동 후 새 데이터)
+	$effect(() => { isLiked = liked; });
+
 	async function toggleLike(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();

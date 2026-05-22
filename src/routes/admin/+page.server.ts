@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { ADMIN_PASSWORD } from '$env/static/private';
+import { ADMIN_PASSWORD } from '$env/dynamic/private';
 import type { PageServerLoad, Actions } from './$types';
 
 // ────────────────────────────────────────────────────────────
