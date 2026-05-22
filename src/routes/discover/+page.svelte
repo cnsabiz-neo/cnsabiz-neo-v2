@@ -6,6 +6,7 @@
 
 	let { data } = $props();
 	let searchInput = $state(data.query ?? '');
+	const likedSet = $derived(new Set(data.likedIds ?? []));
 
 	function handleSearch(e: SubmitEvent) {
 		e.preventDefault();
@@ -77,7 +78,7 @@
 	{#if data.projects.length > 0}
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 			{#each data.projects as project}
-				<CampaignCard {project} />
+				<CampaignCard {project} liked={likedSet.has(project.id)} />
 			{/each}
 		</div>
 	{:else}

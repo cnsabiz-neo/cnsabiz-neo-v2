@@ -8,9 +8,10 @@
 		categories?: { name: string };
 	};
 
-	let { project, size = 'default' }: {
+	let { project, size = 'default', liked = false }: {
 		project: Project;
 		size?: 'default' | 'compact' | 'wide';
+		liked?: boolean;
 	} = $props();
 
 	const rate = $derived(getFundingRate(project.current_amount, project.goal_amount));
@@ -18,8 +19,35 @@
 	const isEnded = $derived(daysLeft === 0);
 	const isLive = $derived(!isEnded && project.status === 'active');
 
-	/** 달성률 색상: 100% 이상이면 초록 유지, 아니면 티어 */
+	/** 달성률 색상 */
 	const rateColor = $derived(rate >= 100 ? '#00C4C4' : '#00C4C4');
+
+	/** 찜 상태 (낙관적 업데이트) */
+	let isLiked = $state(liked);
+	let likeLoading = $state(false);
+
+	async function toggleLike(e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (likeLoading) return;
+
+		likeLoading = true;
+		isLiked = !isLiked; // 낙관적 업데이트
+
+		try {
+			const res = await fetch(`/api/likes/${project.id}`, { method: 'POST' });
+			if (!res.ok) {
+				isLiked = !isLiked; // 실패 시 롤백
+				if (res.status === 401) {
+					window.location.href = '/auth/login';
+				}
+			}
+		} catch {
+			isLiked = !isLiked; // 실패 시 롤백
+		} finally {
+			likeLoading = false;
+		}
+	}
 </script>
 
 <a
@@ -57,13 +85,20 @@
 
 		<!-- 상단 우측: 찜하기 -->
 		<button
-			class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors shadow-sm"
-			onclick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-			aria-label="찜하기"
+			class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors shadow-sm
+				{likeLoading ? 'opacity-60' : ''}"
+			onclick={toggleLike}
+			aria-label={isLiked ? '찜 해제' : '찜하기'}
 		>
-			<svg class="w-3.5 h-3.5 text-[#999]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-			</svg>
+			{#if isLiked}
+				<svg class="w-3.5 h-3.5 text-[#FF5C35]" fill="currentColor" viewBox="0 0 24 24">
+					<path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+				</svg>
+			{:else}
+				<svg class="w-3.5 h-3.5 text-[#999]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+				</svg>
+			{/if}
 		</button>
 
 		<!-- 마감 오버레이 -->

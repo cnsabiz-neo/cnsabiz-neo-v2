@@ -4,6 +4,7 @@
 	import logo from '$lib/assets/logo.png';
 
 	let { data } = $props();
+	const likedSet = $derived(new Set(data.likedIds ?? []));
 
 	/** 히어로 배너 슬라이더 */
 	let heroIdx = $state(0);
@@ -311,7 +312,7 @@
 				</div>
 				<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 					{#each [...data.featured, ...data.trending].slice(0, 10) as project}
-						<CampaignCard {project} />
+						<CampaignCard {project} liked={likedSet.has(project.id)} />
 					{/each}
 				</div>
 			</div>
@@ -386,7 +387,7 @@
 				</div>
 				<div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 					{#each data.trending as project}
-						<CampaignCard {project} />
+						<CampaignCard {project} liked={likedSet.has(project.id)} />
 					{/each}
 				</div>
 			</div>
