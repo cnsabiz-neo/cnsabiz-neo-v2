@@ -31,6 +31,9 @@
 		},
 	];
 
+	/** 실시간 베스트 탭 */
+	let bestTab = $state<'funding' | 'open' | 'store'>('funding');
+
 	/** 퀵 메뉴 아이콘 (와디즈 스타일) */
 	const quickMenus = [
 		{ icon: '♻️', label: '다시쓰다', href: '/discover?tag=reuse' },
@@ -172,11 +175,11 @@
 <section class="bg-white pt-5 pb-8">
 	<div class="max-w-[1200px] mx-auto px-4">
 
-		<!-- ── 히어로 슬라이더 — 데스크톱 전용 ── -->
-		<div class="hidden md:block mb-0">
+		<!-- ── Row: 히어로 슬라이더(좌) + 실시간 베스트(우) — 데스크톱 전용 ── -->
+		<div class="hidden md:flex gap-4 items-stretch mb-0">
 
 			<!-- 히어로 배너 슬라이더 -->
-			<div class="relative w-full rounded-[8px] overflow-hidden" style="height: 320px;">
+			<div class="relative flex-1 min-w-0 rounded-[8px] overflow-hidden" style="height: 320px;">
 				{#each heroBanners as banner, i}
 					<div
 						class="absolute inset-0 transition-opacity duration-700"
@@ -249,6 +252,43 @@
 							aria-label="배너 {i+1}"
 						></button>
 					{/each}
+				</div>
+			</div>
+
+			<!-- 실시간 베스트 패널 (우) -->
+			<div class="w-[300px] shrink-0 border border-[#EBEBEB] rounded-[8px] overflow-hidden flex flex-col">
+				<div class="px-4 pt-4 pb-0">
+					<h3 class="text-[15px] font-bold text-[#1A1A1A] mb-3">실시간 베스트</h3>
+					<div class="flex border-b border-[#EBEBEB] -mx-4 px-4 gap-1">
+						{#each [['funding','펀딩/프리오더'],['open','오픈예정'],['store','스토어']] as [tab, label]}
+							<button
+								onclick={() => bestTab = tab as 'funding'|'open'|'store'}
+								class="text-[12px] font-medium pb-2 px-1 border-b-2 transition-colors -mb-px
+									{bestTab === tab ? 'border-[#1A1A1A] text-[#1A1A1A]' : 'border-transparent text-[#999] hover:text-[#555]'}"
+							>
+								{label}
+							</button>
+						{/each}
+					</div>
+				</div>
+				<div class="flex-1 overflow-y-auto py-1">
+					{#if data.trending.length > 0}
+						{#each data.trending.slice(0, 5) as project, i}
+							<a href="/projects/{project.slug}" class="flex items-start gap-3 px-4 py-3 hover:bg-[#FAFAFA] transition-colors">
+								<span class="shrink-0 w-5 text-[13px] font-bold text-[#1A1A1A] mt-0.5">{i + 1}</span>
+								<div class="flex-1 min-w-0">
+									<p class="text-[12px] text-[#1A1A1A] leading-snug line-clamp-2 mb-1">{project.title}</p>
+									<span class="text-[12px] font-bold text-[#00C4C4]">
+										{Math.round(project.current_amount / project.goal_amount * 100).toLocaleString('ko-KR')}% 달성
+									</span>
+								</div>
+							</a>
+						{/each}
+					{:else}
+						<div class="flex flex-col items-center justify-center h-full py-10 text-center px-4">
+							<p class="text-[13px] text-[#BBB]">아직 진행 중인 프로젝트가 없어요</p>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
