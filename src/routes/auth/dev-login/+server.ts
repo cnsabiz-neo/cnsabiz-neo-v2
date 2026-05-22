@@ -4,14 +4,14 @@
  */
 import { json, error } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/dynamic/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/dynamic/private';
+import { getEnv } from '$lib/supabase/env';
 import type { RequestHandler } from './$types';
 
 const DEV_EMAIL = 'dev@keunsabiz.kr';
 const DEV_PASS  = 'DevTest1234!';
 
-export const POST: RequestHandler = async () => {
+export const POST: RequestHandler = async ({ platform }) => {
+	const { PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = getEnv(platform);
 	// 서비스 롤 클라이언트 (서버 전용, 절대 클라이언트에 노출 금지)
 	const admin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 		auth: { autoRefreshToken: false, persistSession: false }

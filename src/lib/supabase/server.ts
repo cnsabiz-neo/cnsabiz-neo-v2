@@ -1,10 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/dynamic/public';
 import type { Database } from './types';
 import type { RequestEvent } from '@sveltejs/kit';
 
-export function createServerSupabaseClient(event: RequestEvent) {
-	return createServerClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+export function createServerSupabaseClient(event: RequestEvent, url: string, key: string) {
+	return createServerClient<Database>(url, key, {
 		cookies: {
 			getAll: () => event.cookies.getAll(),
 			setAll: (cookies) => {

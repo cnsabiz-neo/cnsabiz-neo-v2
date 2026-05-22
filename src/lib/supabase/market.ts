@@ -1,14 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
-import {
-	PUBLIC_MARKET_SUPABASE_URL,
-	PUBLIC_MARKET_SUPABASE_ANON_KEY
-} from '$env/dynamic/public';
 
-/** 브라우저용 — 읽기 전용 공개 데이터 */
-export const marketSupabase = createClient(
-	PUBLIC_MARKET_SUPABASE_URL,
-	PUBLIC_MARKET_SUPABASE_ANON_KEY
-);
+/** 브라우저용 — url/key는 서버 load에서 전달받아 초기화 */
+export function createMarketClient(url: string, key: string) {
+	return createClient(url, key);
+}
 
 export type MarketItem = {
 	id: string;

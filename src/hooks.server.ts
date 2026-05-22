@@ -1,8 +1,10 @@
 import { createServerSupabaseClient } from '$lib/supabase/server';
+import { getEnv } from '$lib/supabase/env';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.supabase = createServerSupabaseClient(event);
+	const env = getEnv(event.platform);
+	event.locals.supabase = createServerSupabaseClient(event, env.PUBLIC_SUPABASE_URL, env.PUBLIC_SUPABASE_ANON_KEY);
 
 	event.locals.safeGetSession = async () => {
 		const { data: { session } } = await event.locals.supabase.auth.getSession();

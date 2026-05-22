@@ -1,12 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { ADMIN_PASSWORD } from '$env/dynamic/private';
+import { getEnv } from '$lib/supabase/env';
 import type { PageServerLoad, Actions } from './$types';
 
 // ────────────────────────────────────────────────────────────
 // 접근 판단 헬퍼
 // ────────────────────────────────────────────────────────────
-async function resolveAccess(locals: App.Locals, cookies: { get(name: string): string | undefined }) {
+async function resolveAccess(locals: App.Locals, cookies: { get(name: string): string | undefined }, adminPassword: string) {
 	const { user } = await locals.safeGetSession();
 
 	// 구글 로그인 + is_admin = true → 최고 권한
@@ -21,7 +21,7 @@ async function resolveAccess(locals: App.Locals, cookies: { get(name: string): s
 	}
 
 	// 비밀번호 쿠키로 잠금 해제됐는지 확인
-	const passwordUnlocked = cookies.get('admin_pw') === ADMIN_PASSWORD;
+	const passwordUnlocked = cookies.get('admin_pw') === adminPassword;
 
 	return { user, isAdmin, passwordUnlocked, canAccess: isAdmin || passwordUnlocked };
 }
@@ -29,8 +29,9 @@ async function resolveAccess(locals: App.Locals, cookies: { get(name: string): s
 // ────────────────────────────────────────────────────────────
 // Load
 // ────────────────────────────────────────────────────────────
-export const load: PageServerLoad = async ({ locals, cookies }) => {
-	const { user, isAdmin, passwordUnlocked, canAccess } = await resolveAccess(locals, cookies);
+export const load: PageServerLoad = async ({ locals, cookies, platform }) => {
+	const { ADMIN_PASSWORD } = getEnv(platform);
+	const { user, isAdmin, passwordUnlocked, canAccess } = await resolveAccess(locals, cookies, ADMIN_PASSWORD);
 
 	if (!canAccess) {
 		// 로그인 상태 정도만 전달 (비밀번호 폼 표시용)
@@ -75,7 +76,8 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 export const actions: Actions = {
 
 	/** 비밀번호로 잠금 해제 */
-	unlock: async ({ request, cookies }) => {
+	unlock: async ({ request, cookies, platform }) => {
+		const { ADMIN_PASSWORD } = getEnv(platform);
 		const form = await request.formData();
 		const pw   = (form.get('password') as string ?? '').trim();
 
@@ -86,16 +88,17 @@ export const actions: Actions = {
 		cookies.set('admin_pw', pw, {
 			path:     '/admin',
 			httpOnly: true,
-			secure:   !dev,          // 로컬에선 http 허용
+			secure:   !dev,
 			sameSite: 'lax',
-			maxAge:   60 * 60 * 24   // 24시간
+			maxAge:   60 * 60 * 24
 		});
 
 		return { unlocked: true };
 	},
 
 	/** 현재 로그인된 구글 계정을 관리자로 등록 */
-	registerAdmin: async ({ locals, cookies }) => {
+	registerAdmin: async ({ locals, cookies, platform }) => {
+		const { ADMIN_PASSWORD } = getEnv(platform);
 		// 비밀번호 쿠키 재확인
 		if (cookies.get('admin_pw') !== ADMIN_PASSWORD) {
 			return fail(403, { message: '비밀번호 인증이 만료됐습니다. 다시 입력해주세요.' });
@@ -118,8 +121,9 @@ export const actions: Actions = {
 	},
 
 	/** 프로젝트 승인: pending_review → active */
-	approve: async ({ request, locals, cookies }) => {
-		const { canAccess } = await resolveAccess(locals, cookies);
+	approve: async ({ request, locals, cookies, platform }) => {
+		const { ADMIN_PASSWORD } = getEnv(platform);
+		const { canAccess } = await resolveAccess(locals, cookies, ADMIN_PASSWORD);
 		if (!canAccess) return fail(403, { message: '권한 없음' });
 
 		const form = await request.formData();
@@ -137,8 +141,9 @@ export const actions: Actions = {
 	},
 
 	/** 프로젝트 반려: pending_review → draft */
-	reject: async ({ request, locals, cookies }) => {
-		const { canAccess } = await resolveAccess(locals, cookies);
+	reject: async ({ request, locals, cookies, platform }) => {
+		const { ADMIN_PASSWORD } = getEnv(platform);
+		const { canAccess } = await resolveAccess(locals, cookies, ADMIN_PASSWORD);
 		if (!canAccess) return fail(403, { message: '권한 없음' });
 
 		const form   = await request.formData();

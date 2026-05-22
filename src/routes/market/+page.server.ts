@@ -1,20 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
-import { MARKET_SUPABASE_SERVICE_KEY } from '$env/dynamic/private';
-import { PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY } from '$env/dynamic/public';
+import { getEnv } from '$lib/supabase/env';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import type { MarketItem } from '$lib/supabase/market';
 
 const PAGE_SIZE = 20;
 
-function serviceClient() {
-	return createClient(PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY);
+function serviceClient(url: string, key: string) {
+	return createClient(url, key);
 }
-function anonClient() {
-	return createClient(PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY);
+function anonClient(url: string, key: string) {
+	return createClient(url, key);
 }
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, platform }) => {
+	const { PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY } = getEnv(platform);
+	const db = anonClient(PUBLIC_MARKET_SUPABASE_URL, PUBLIC_MARKET_SUPABASE_ANON_KEY);
 	const page      = Math.max(1, Number(url.searchParams.get('page')   ?? 1));
 	const domain    = Number(url.searchParams.get('domain')  ?? 0);
 	const classNum  = Number(url.searchParams.get('class')   ?? 0);
@@ -25,7 +26,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const from = (page - 1) * PAGE_SIZE;
 	const to   = from + PAGE_SIZE - 1;
 
-	let query = anonClient()
+	let query = db
 		.from('items')
 		.select('*', { count: 'exact' })
 		.order('created_at', { ascending: false });
@@ -58,7 +59,7 @@ function isCnsaEmail(email: string | null | undefined) {
 }
 
 export const actions: Actions = {
-	reserve: async ({ request, locals }) => {
+	reserve: async ({ request, locals, platform }) => {
 		const { user } = await locals.safeGetSession();
 		if (!user) return fail(401, { error: '로그인이 필요합니다.' });
 		if (!isCnsaEmail(user.email))
@@ -67,7 +68,8 @@ export const actions: Actions = {
 		const itemId = (await request.formData()).get('itemId') as string;
 		if (!itemId) return fail(400, { error: '잘못된 요청입니다.' });
 
-		const db = serviceClient();
+		const { PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY } = getEnv(platform);
+		const db = serviceClient(PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY);
 		const { data: item } = await db
 			.from('items').select('is_reserved,is_completed,status,uploaded_by').eq('id', itemId).single();
 
@@ -82,12 +84,13 @@ export const actions: Actions = {
 		return { success: true, action: 'reserve' };
 	},
 
-	cancelReserve: async ({ request, locals }) => {
+	cancelReserve: async ({ request, locals, platform }) => {
 		const { user } = await locals.safeGetSession();
 		if (!user) return fail(401, { error: '로그인이 필요합니다.' });
 
 		const itemId = (await request.formData()).get('itemId') as string;
-		const db = serviceClient();
+		const { PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY } = getEnv(platform);
+		const db = serviceClient(PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY);
 		const { data: item } = await db
 			.from('items').select('reserved_by,uploaded_by,is_completed').eq('id', itemId).single();
 
@@ -102,12 +105,13 @@ export const actions: Actions = {
 		return { success: true, action: 'cancelReserve' };
 	},
 
-	complete: async ({ request, locals }) => {
+	complete: async ({ request, locals, platform }) => {
 		const { user } = await locals.safeGetSession();
 		if (!user) return fail(401, { error: '로그인이 필요합니다.' });
 
 		const itemId = (await request.formData()).get('itemId') as string;
-		const db = serviceClient();
+		const { PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY } = getEnv(platform);
+		const db = serviceClient(PUBLIC_MARKET_SUPABASE_URL, MARKET_SUPABASE_SERVICE_KEY);
 		const { data: item } = await db
 			.from('items').select('uploaded_by,is_completed').eq('id', itemId).single();
 
