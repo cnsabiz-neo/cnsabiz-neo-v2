@@ -1,5 +1,29 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import type { TxStatus } from '$lib/supabase/types';
+
+/** 계좌이체 메타 (payments.transfer_meta 에 저장) */
+interface TransferMeta {
+	depositorName?: string | null;
+	bank?: string;
+	account?: string;
+	holder?: string;
+	deadline?: string | null;
+}
+
+/** payments + 중첩 조인 결과 타입 */
+interface PaymentResult {
+	order_id: string;
+	amount: number;
+	status: TxStatus;
+	transfer_meta: TransferMeta | null;
+	fundings: {
+		project_id: string;
+		quantity: number;
+		rewards: { title: string } | null;
+		projects: { slug: string; title: string } | null;
+	} | null;
+}
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const { session, user } = await locals.safeGetSession();
@@ -8,17 +32,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const orderId = url.searchParams.get('orderId');
 	if (!orderId) throw error(400, '잘못된 접근입니다.');
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const sb = locals.supabase as any;
-
 	/** 주문 정보 조회 */
-	const { data: payment } = await sb
+	const { data: rawPayment } = await locals.supabase
 		.from('payments')
 		.select(`
 			order_id,
 			amount,
 			status,
-			toss_response,
+			transfer_meta,
 			fundings (
 				project_id,
 				quantity,
@@ -29,23 +50,24 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		.eq('order_id', orderId)
 		.single();
 
+	const payment = rawPayment as unknown as PaymentResult | null;
 	if (!payment) throw error(404, '주문 정보를 찾을 수 없습니다.');
 
-	const funding   = (payment as any).fundings;
-	const project   = funding?.projects;
-	const reward    = funding?.rewards;
-	const meta      = (payment as any).transfer_meta ?? {};
+	const funding = payment.fundings;
+	const project = funding?.projects;
+	const reward  = funding?.rewards;
+	const meta    = payment.transfer_meta ?? {};
 
 	return {
-		orderId:       (payment as any).order_id   as string,
-		amount:        (payment as any).amount      as number,
-		status:        (payment as any).status      as string,
-		depositorName: meta.depositorName           as string | null,
+		orderId:       payment.order_id,
+		amount:        payment.amount,
+		status:        payment.status,
+		depositorName: meta.depositorName ?? null,
 		bankAccount: {
-			bank:     meta.bank     as string,
-			account:  meta.account  as string,
-			holder:   meta.holder   as string,
-			deadline: meta.deadline as string | null
+			bank:     meta.bank ?? '',
+			account:  meta.account ?? '',
+			holder:   meta.holder ?? '',
+			deadline: meta.deadline ?? null
 		},
 		projectSlug:  project?.slug  ?? null,
 		projectTitle: project?.title ?? null,

@@ -96,10 +96,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		console.error('[project detail] project_stories 읽기 실패:', storyRes.error.message, storyRes.error.code);
 	}
 
-	// Fallback: project_stories 에 없으면 projects.story_html 확인 (구버전 스키마)
-	const storyFromTable = (storyRes.data as { story_html: string | null } | null)?.story_html;
-	const storyFromProject = (project as unknown as { story_html?: string | null }).story_html;
-	const resolvedStoryHtml = storyFromTable ?? storyFromProject ?? null;
+	const resolvedStoryHtml = (storyRes.data as { story_html: string | null } | null)?.story_html ?? null;
 
 	return {
 		project,

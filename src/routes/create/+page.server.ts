@@ -6,18 +6,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const { session, user } = await locals.safeGetSession();
 	if (!session || !user) throw redirect(303, '/auth/login?next=/create');
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const sb = locals.supabase as any;
-
 	/** 카테고리 목록 로드 */
-	const { data: categories } = await sb
+	const { data: categories } = await locals.supabase
 		.from('categories')
 		.select('id, name, slug')
 		.order('sort_order');
 
 	return {
 		user,
-		categories: (categories ?? []) as { id: number; name: string; slug: string }[]
+		categories: categories ?? []
 	};
 };
 
@@ -46,17 +43,16 @@ export const actions: Actions = {
 		if (!categoryId)    return fail(400, { error: '카테고리를 선택해주세요.' });
 		if (!goalAmount || goalAmount < 10000) return fail(400, { error: '목표금액은 10,000원 이상이어야 합니다.' });
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const sb = locals.supabase as any;
+		const supabase = locals.supabase;
 
 		/** slug 생성 (한글 제목 → 알파벳 + nanoid) */
 		const slug = nanoid(12).toLowerCase();
 
 		/** 프로필 is_creator 업데이트 */
-		await sb.from('profiles').update({ is_creator: true }).eq('id', user.id);
+		await supabase.from('profiles').update({ is_creator: true }).eq('id', user.id);
 
 		/** 프로젝트 생성 (story_html 제외 — 경량 insert) */
-		const { data: project, error: pErr } = await sb
+		const { data: project, error: pErr } = await supabase
 			.from('projects')
 			.insert({
 				creator_id:    user.id,
@@ -79,24 +75,14 @@ export const actions: Actions = {
 			return fail(500, { error: '프로젝트 등록에 실패했습니다. 다시 시도해주세요.' });
 		}
 
-		const projectId = (project as { id: string; slug: string }).id;
-
 		/** 스토리 별도 저장 (project_stories 테이블) */
 		if (storyHtml) {
-			const { error: storyErr } = await sb
+			const { error: storyErr } = await supabase
 				.from('project_stories')
-				.upsert({ project_id: projectId, story_html: storyHtml }, { onConflict: 'project_id' });
+				.upsert({ project_id: project.id, story_html: storyHtml }, { onConflict: 'project_id' });
 			if (storyErr) {
 				// 스토리 저장 실패 시 프로젝트 생성 자체는 성공하지만 스토리가 사라질 수 있음
 				console.error('[create] project_stories 저장 실패:', storyErr.message, storyErr.code);
-				// Fallback: projects.story_html 에도 직접 저장 시도 (구버전 스키마 호환)
-				const { error: fallbackErr } = await sb
-					.from('projects')
-					.update({ story_html: storyHtml } as Record<string, unknown>)
-					.eq('id', projectId);
-				if (fallbackErr) {
-					console.error('[create] fallback story 저장도 실패:', fallbackErr.message);
-				}
 			}
 		}
 
@@ -113,7 +99,7 @@ export const actions: Actions = {
 
 		if (rewards.length > 0) {
 			const rewardRows = rewards.map((r, i) => ({
-				project_id:         projectId,
+				project_id:         project.id,
 				creator_id:         user.id,          // ← RLS 최적화용
 				title:              r.title,
 				description:        r.description || null,
@@ -123,10 +109,9 @@ export const actions: Actions = {
 				is_early_bird:      r.is_early_bird ?? false,
 				sort_order:         i
 			}));
-			await sb.from('rewards').insert(rewardRows);
+			await supabase.from('rewards').insert(rewardRows);
 		}
 
-		throw redirect(303, `/projects/${(project as { id: string; slug: string }).slug}?submitted=1`);
-
+		throw redirect(303, `/projects/${project.slug}?submitted=1`);
 	}
 };

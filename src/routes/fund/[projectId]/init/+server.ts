@@ -29,8 +29,6 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	if (!depositorName.trim()) throw error(400, '입금자명을 입력해주세요.');
 
 	const supabase = locals.supabase;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const sb = supabase as any;
 
 	/** 프로젝트 검증 */
 	const { data: rawProject } = await supabase
@@ -67,7 +65,7 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	const deadline = new Date(Date.now() + BANK_ACCOUNT.deadlineHours * 60 * 60 * 1000).toISOString();
 
 	/** fundings 레코드 생성 (pending) */
-	const { data: funding, error: fundingErr } = await sb
+	const { data: funding, error: fundingErr } = await supabase
 		.from('fundings')
 		.insert({
 			project_id: params.projectId,
@@ -83,8 +81,8 @@ export const POST: RequestHandler = async ({ locals, params, request }) => {
 	if (fundingErr || !funding) throw error(500, '후원 신청에 실패했습니다.');
 
 	/** payments 레코드 생성 — 계좌이체 메타는 transfer_meta 에 저장 */
-	await sb.from('payments').insert({
-		funding_id:    (funding as { id: string }).id,
+	await supabase.from('payments').insert({
+		funding_id:    funding.id,
 		order_id:      orderId,
 		amount,
 		method:        'bank_transfer',

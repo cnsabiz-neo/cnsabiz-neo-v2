@@ -28,8 +28,8 @@
 		<div class="space-y-3">
 			{#each data.fundings as funding}
 				{@const status = statusLabels[funding.status]}
-				{@const project = (funding as any).projects}
-				{@const reward = (funding as any).rewards}
+				{@const project = funding.projects}
+				{@const reward = funding.rewards}
 				<div class="bg-white border border-gray-100 rounded-2xl p-4">
 					<div class="flex items-start gap-3">
 						{#if project?.thumbnail_url}

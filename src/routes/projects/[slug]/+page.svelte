@@ -206,7 +206,7 @@
 					{#if data.comments.length > 0}
 						<div class="space-y-5">
 							{#each data.comments as c}
-								{@const profile = (c as any).profiles as { display_name: string | null; avatar_url: string | null } | null}
+								{@const profile = c.profiles}
 								<div class="flex gap-3">
 									<div class="w-9 h-9 rounded-full bg-[#F0F0F0] shrink-0 overflow-hidden flex items-center justify-center text-[13px] font-bold text-[#888]">
 										{#if profile?.avatar_url}

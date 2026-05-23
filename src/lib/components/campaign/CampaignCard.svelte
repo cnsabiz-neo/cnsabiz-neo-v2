@@ -4,8 +4,8 @@
 	import type { Database } from '$lib/supabase/types';
 
 	type Project = Database['public']['Tables']['projects']['Row'] & {
-		profiles?: { display_name: string | null; avatar_url: string | null };
-		categories?: { name: string };
+		profiles?: { display_name: string | null; avatar_url: string | null } | null;
+		categories?: { name: string } | null;
 	};
 
 	let { project, size = 'default', liked = false }: {

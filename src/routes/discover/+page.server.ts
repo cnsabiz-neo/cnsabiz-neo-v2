@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import { getLikedProjectIds } from '$lib/supabase/likes';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	const supabase = locals.supabase;
@@ -7,7 +8,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const q = url.searchParams.get('q');
 	const sort = url.searchParams.get('sort') ?? 'popular';
 
-	const [{ data: categories }, projectsResult, { data: likes }] = await Promise.all([
+	const [{ data: categories }, projectsResult, likedIds] = await Promise.all([
 		supabase.from('categories').select('*').order('sort_order'),
 		(async () => {
 			let query = supabase
@@ -26,13 +27,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		})(),
 
 		// 로그인한 사용자의 찜 목록
-		user
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			? (supabase as any).from('project_likes').select('project_id').eq('user_id', user.id)
-			: Promise.resolve({ data: [] })
+		getLikedProjectIds(supabase, user?.id)
 	]);
-
-	const likedIds = new Set<string>((likes ?? []).map((l: { project_id: string }) => l.project_id));
 
 	return {
 		categories: categories ?? [],
@@ -40,6 +36,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		activeCategory: category,
 		query: q,
 		sort,
-		likedIds: [...likedIds]
+		likedIds
 	};
 };

@@ -34,7 +34,9 @@ export interface Database {
 					avatar_url?:  string | null;
 					bio?:         string | null;
 					is_creator?:  boolean;
+					is_admin?:    boolean;
 				};
+				Relationships: [];
 			};
 
 			// ──────────────────────────────────────────
@@ -59,6 +61,7 @@ export interface Database {
 					icon_url?:   string | null;
 					sort_order?: number;
 				};
+				Relationships: [];
 			};
 
 			// ──────────────────────────────────────────
@@ -75,8 +78,8 @@ export interface Database {
 					goal_amount:    number;
 					current_amount: number;
 					backer_count:   number;
-					comment_count:  number;   // ← NEW
-					update_count:   number;   // ← NEW
+					comment_count:  number;
+					update_count:   number;
 					status:         ProjectStatus;
 					starts_at:      string | null;
 					ends_at:        string | null;
@@ -110,6 +113,22 @@ export interface Database {
 					is_featured?:   boolean;
 					tags?:          string[];
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'projects_creator_id_fkey';
+						columns: ['creator_id'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'projects_category_id_fkey';
+						columns: ['category_id'];
+						isOneToOne: false;
+						referencedRelation: 'categories';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
@@ -127,6 +146,15 @@ export interface Database {
 				Update: {
 					story_html?: string | null;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'project_stories_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: true;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
@@ -135,7 +163,7 @@ export interface Database {
 				Row: {
 					id:                 string;
 					project_id:         string;
-					creator_id:         string;   // ← NEW
+					creator_id:         string;
 					title:              string;
 					description:        string | null;
 					amount:             number;
@@ -148,7 +176,7 @@ export interface Database {
 				};
 				Insert: {
 					project_id:          string;
-					creator_id:          string;  // ← NEW (필수)
+					creator_id:          string;
 					title:               string;
 					description?:        string | null;
 					amount:              number;
@@ -166,6 +194,22 @@ export interface Database {
 					is_early_bird?:      boolean;
 					sort_order?:         number;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'rewards_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: false;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'rewards_creator_id_fkey';
+						columns: ['creator_id'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
@@ -196,10 +240,33 @@ export interface Database {
 				Update: {
 					status?: TxStatus;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'fundings_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: false;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'fundings_backer_id_fkey';
+						columns: ['backer_id'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'fundings_reward_id_fkey';
+						columns: ['reward_id'];
+						isOneToOne: false;
+						referencedRelation: 'rewards';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
-			// payments — toss_response → transfer_meta, payment_key 제거
+			// payments — 계좌이체 메타는 transfer_meta(JSON)에 저장
 			payments: {
 				Row: {
 					id:            string;
@@ -208,7 +275,7 @@ export interface Database {
 					amount:        number;
 					method:        string;
 					status:        TxStatus;
-					transfer_meta: Json | null;   // ← RENAMED (계좌이체 메타)
+					transfer_meta: Json | null;
 					approved_at:   string | null;
 					created_at:    string;
 					updated_at:    string;
@@ -226,6 +293,15 @@ export interface Database {
 					transfer_meta?: Json | null;
 					approved_at?:   string | null;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'payments_funding_id_fkey';
+						columns: ['funding_id'];
+						isOneToOne: false;
+						referencedRelation: 'fundings';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
@@ -252,6 +328,22 @@ export interface Database {
 					content_html?: string | null;
 					is_public?:    boolean;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'project_updates_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: false;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'project_updates_author_id_fkey';
+						columns: ['author_id'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 
 			// ──────────────────────────────────────────
@@ -276,6 +368,56 @@ export interface Database {
 					content?:    string;
 					is_deleted?: boolean;
 				};
+				Relationships: [
+					{
+						foreignKeyName: 'comments_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: false;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'comments_author_id_fkey';
+						columns: ['author_id'];
+						isOneToOne: false;
+						referencedRelation: 'profiles';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'comments_parent_id_fkey';
+						columns: ['parent_id'];
+						isOneToOne: false;
+						referencedRelation: 'comments';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+
+			// ──────────────────────────────────────────
+			// project_likes — 찜(위시리스트). (project_id, user_id) 복합 PK
+			project_likes: {
+				Row: {
+					project_id: string;
+					user_id:    string;
+					created_at: string;
+				};
+				Insert: {
+					project_id: string;
+					user_id:    string;
+				};
+				Update: {
+					project_id?: string;
+					user_id?:    string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'project_likes_project_id_fkey';
+						columns: ['project_id'];
+						isOneToOne: false;
+						referencedRelation: 'projects';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 		};
 		Views: Record<string, never>;
@@ -284,5 +426,6 @@ export interface Database {
 			project_status: ProjectStatus;
 			tx_status:      TxStatus;
 		};
+		CompositeTypes: Record<string, never>;
 	};
 }

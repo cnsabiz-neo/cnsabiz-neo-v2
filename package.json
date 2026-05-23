@@ -30,7 +30,6 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.10.3",
 		"@supabase/supabase-js": "^2.106.1",
-		"@tosspayments/tosspayments-sdk": "^2.7.0",
 		"nanoid": "^5.1.11"
 	}
 }

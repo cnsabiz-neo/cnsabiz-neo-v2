@@ -6,11 +6,10 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 	if (!user) return json({ error: '로그인이 필요합니다.' }, { status: 401 });
 
 	const projectId = params.projectId;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const sb = locals.supabase as any;
+	const supabase = locals.supabase;
 
 	// 이미 찜했는지 확인
-	const { data: existing } = await sb
+	const { data: existing } = await supabase
 		.from('project_likes')
 		.select('project_id')
 		.eq('project_id', projectId)
@@ -19,17 +18,17 @@ export const POST: RequestHandler = async ({ locals, params }) => {
 
 	if (existing) {
 		// 찜 해제
-		await sb
+		await supabase
 			.from('project_likes')
 			.delete()
 			.eq('project_id', projectId)
 			.eq('user_id', user.id);
 		return json({ liked: false });
-	} else {
-		// 찜 추가
-		await sb
-			.from('project_likes')
-			.insert({ project_id: projectId, user_id: user.id });
-		return json({ liked: true });
 	}
+
+	// 찜 추가
+	await supabase
+		.from('project_likes')
+		.insert({ project_id: projectId, user_id: user.id });
+	return json({ liked: true });
 };
