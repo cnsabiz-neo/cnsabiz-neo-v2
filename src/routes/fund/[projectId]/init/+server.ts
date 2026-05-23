@@ -7,7 +7,7 @@ type ProjectRow = Database['public']['Tables']['projects']['Row'];
 type RewardRow  = Database['public']['Tables']['rewards']['Row'];
 
 /** 입금 계좌 정보 — 환경변수 또는 여기서 직접 설정 */
-export const BANK_ACCOUNT = {
+const BANK_ACCOUNT = {
 	bank:    '신한은행',
 	account: '110-123-456789',
 	holder:  '큰사비즈(충남삼성고)',
