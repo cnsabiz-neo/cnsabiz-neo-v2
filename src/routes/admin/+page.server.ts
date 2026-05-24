@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ locals, cookies, platform }) => {
 			.select(`
 				id, slug, title, subtitle, thumbnail_url,
 				goal_amount, created_at, tags,
-				profiles ( display_name, avatar_url ),
+				profiles!projects_creator_id_fkey ( display_name, avatar_url ),
 				categories ( name, slug )
 			`)
 			.eq('status', 'pending_review')
@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, cookies, platform }) => {
 
 		locals.supabase
 			.from('projects')
-			.select('id, slug, title, status, updated_at, profiles ( display_name )')
+			.select('id, slug, title, status, updated_at, profiles!projects_creator_id_fkey ( display_name )')
 			.in('status', ['active', 'draft', 'failed', 'cancelled'])
 			.order('updated_at', { ascending: false })
 			.limit(20)

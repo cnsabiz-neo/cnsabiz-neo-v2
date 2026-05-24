@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		(async () => {
 			let query = supabase
 				.from('projects')
-				.select('*, profiles(display_name, avatar_url), categories(name, slug)')
+				.select('*, profiles!projects_creator_id_fkey(display_name, avatar_url), categories(name, slug)')
 				.in('status', ['active', 'funded']);
 
 			if (category) query = query.eq('categories.slug', category);

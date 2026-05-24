@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const [{ data: featured }, { data: trending }, { data: categories }, likedIds] = await Promise.all([
 		supabase
 			.from('projects')
-			.select('*, profiles(display_name, avatar_url), categories(name)')
+			.select('*, profiles!projects_creator_id_fkey(display_name, avatar_url), categories(name)')
 			.eq('status', 'active')
 			.eq('is_featured', true)
 			.order('created_at', { ascending: false })
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 		supabase
 			.from('projects')
-			.select('*, profiles(display_name, avatar_url), categories(name)')
+			.select('*, profiles!projects_creator_id_fkey(display_name, avatar_url), categories(name)')
 			.eq('status', 'active')
 			.order('backer_count', { ascending: false })
 			.limit(12),

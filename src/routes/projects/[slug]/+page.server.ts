@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 			id, creator_id, category_id, slug, title, subtitle, thumbnail_url,
 			goal_amount, current_amount, backer_count,
 			status, starts_at, ends_at, is_featured, tags, created_at, updated_at,
-			profiles ( id, display_name, avatar_url, is_creator ),
+			profiles!projects_creator_id_fkey ( id, display_name, avatar_url, is_creator ),
 			categories ( name, slug )
 		`)
 		.eq('slug', params.slug)
