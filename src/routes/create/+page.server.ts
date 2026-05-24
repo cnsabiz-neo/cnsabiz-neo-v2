@@ -95,7 +95,9 @@ export const actions: Actions = {
 			estimated_delivery: string | null;
 			is_early_bird: boolean;
 		}> = [];
-		try { rewards = JSON.parse(rewardsJson); } catch { /* ignore */ }
+		try { rewards = JSON.parse(rewardsJson); } catch (e) { console.error('[create] rewards JSON 파싱 실패:', e); }
+
+		console.log('[create] rewardsJson 원본 길이:', rewardsJson?.length ?? 0, '| 파싱된 리워드 수:', rewards.length);
 
 		if (rewards.length > 0) {
 			const rewardRows = rewards.map((r, i) => ({
@@ -108,11 +110,17 @@ export const actions: Actions = {
 				is_early_bird:      r.is_early_bird ?? false,
 				sort_order:         i
 			}));
-			const { error: rewardErr } = await supabase.from('rewards').insert(rewardRows);
+			const { data: insertedRewards, error: rewardErr } = await supabase
+				.from('rewards')
+				.insert(rewardRows)
+				.select('id');
 			if (rewardErr) {
-				// 리워드 저장 실패 시 로그 (프로젝트 자체는 생성됨)
-				console.error('[create] 리워드 저장 실패:', rewardErr.message, rewardErr.code);
+				console.error('[create] 리워드 저장 실패:', rewardErr.message, '| code=', rewardErr.code, '| details=', rewardErr.details, '| hint=', rewardErr.hint);
+			} else {
+				console.log('[create] 리워드 저장 성공:', insertedRewards?.length ?? 0, '개');
 			}
+		} else {
+			console.warn('[create] 받은 리워드가 0개 — 클라이언트에서 rewards 필드가 비어있음');
 		}
 
 		throw redirect(303, `/projects/${project.slug}?submitted=1`);
