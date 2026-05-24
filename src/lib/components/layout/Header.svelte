@@ -16,6 +16,28 @@
 		{ label: '스토어',           href: '/discover?tab=store' },
 		{ label: '애프터 마켓',        href: '/market' },
 	];
+
+	/** "더보기" 드롭다운 메뉴 */
+	const moreMenu: {
+		title: string;
+		items: { label: string; href: string; external?: boolean }[];
+	}[] = [
+		{
+			title: '개발자',
+			items: [
+				{ label: 'GitHub 저장소', href: 'https://github.com/cnsabiz-neo/cnsabiz-neo-v2', external: true },
+				{ label: '문의하기',      href: 'mailto:cnsabiz@cnsa.hs.kr', external: true },
+			],
+		},
+		{
+			title: '교내 대회',
+			items: [
+				{ label: '프로젝트 둘러보기', href: '/discover' },
+				{ label: '프로젝트 만들기',   href: '/create' },
+				{ label: '내 후원 내역',      href: '/my/fundings' },
+			],
+		},
+	];
 </script>
 
 <header class="sticky top-0 z-50 bg-white border-b border-[#EBEBEB]">
@@ -40,15 +62,56 @@
 					{item.label}{#if item.plus}<sup class="text-[10px] font-black ml-0.5 text-[#00C4C4]">+</sup>{/if}
 				</a>
 			{/each}
-			<button
-				onclick={() => moreOpen = !moreOpen}
-				class="px-3 py-1 text-[14px] font-medium text-[#1A1A1A] hover:text-[#00C4C4] flex items-center gap-0.5"
-			>
-				더보기
-				<svg class="w-3.5 h-3.5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-				</svg>
-			</button>
+			<div class="relative">
+				<button
+					onclick={() => moreOpen = !moreOpen}
+					class="px-3 py-1 text-[14px] font-medium text-[#1A1A1A] hover:text-[#00C4C4] flex items-center gap-0.5"
+				>
+					더보기
+					<svg class="w-3.5 h-3.5 mt-0.5 transition-transform {moreOpen ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+					</svg>
+				</button>
+
+				{#if moreOpen}
+					<!-- 바깥 클릭 시 닫기 -->
+					<button
+						class="fixed inset-0 z-40 cursor-default"
+						onclick={() => moreOpen = false}
+						aria-label="메뉴 닫기"
+						tabindex="-1"
+					></button>
+
+					<!-- 드롭다운 패널 -->
+					<div class="absolute left-0 top-full mt-3 z-50 w-[420px] bg-white border border-[#EBEBEB] rounded-2xl shadow-lg p-6 grid grid-cols-2 gap-x-8 gap-y-2">
+						{#each moreMenu as col}
+							<div>
+								<p class="text-[12px] font-semibold text-[#AAAAAA] mb-3">{col.title}</p>
+								<ul class="space-y-1">
+									{#each col.items as item}
+										<li>
+											<a
+												href={item.href}
+												target={item.external ? '_blank' : undefined}
+												rel={item.external ? 'noopener noreferrer' : undefined}
+												onclick={() => moreOpen = false}
+												class="flex items-center gap-1 py-1.5 text-[14px] text-[#1A1A1A] hover:text-[#00C4C4] transition-colors"
+											>
+												{item.label}
+												{#if item.external}
+													<svg class="w-3 h-3 text-[#BBBBBB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+													</svg>
+												{/if}
+											</a>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
 		</nav>
 
 		<!-- 검색창은 헤더에서 제거 — 홈 페이지 아래 섹션에 별도 배치 -->
