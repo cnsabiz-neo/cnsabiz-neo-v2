@@ -25,6 +25,7 @@
 		{
 			title: '개발자',
 			items: [
+				{ label: '개발자 소개',   href: '/developers' },
 				{ label: 'GitHub 저장소', href: 'https://github.com/cnsabiz-neo/cnsabiz-neo-v2', external: true },
 				{ label: '문의하기',      href: 'mailto:cnsabiz@cnsa.hs.kr', external: true },
 			],
