@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 		supabase
 			.from('rewards')
-			.select('id, project_id, creator_id, title, description, amount, max_quantity, claimed_count, estimated_delivery, is_early_bird, sort_order')
+			.select('id, project_id, title, description, amount, max_quantity, claimed_count, estimated_delivery, is_early_bird, sort_order')
 			.eq('project_id', project.id)
 			.order('sort_order'),
 

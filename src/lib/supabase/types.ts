@@ -158,12 +158,11 @@ export interface Database {
 			};
 
 			// ──────────────────────────────────────────
-			// rewards — creator_id 추가됨 (RLS 최적화)
+			// rewards — 권한은 projects 소유권 기반 RLS로 처리 (creator_id 컬럼 없음)
 			rewards: {
 				Row: {
 					id:                 string;
 					project_id:         string;
-					creator_id:         string;
 					title:              string;
 					description:        string | null;
 					amount:             number;
@@ -176,7 +175,6 @@ export interface Database {
 				};
 				Insert: {
 					project_id:          string;
-					creator_id:          string;
 					title:               string;
 					description?:        string | null;
 					amount:              number;
@@ -200,13 +198,6 @@ export interface Database {
 						columns: ['project_id'];
 						isOneToOne: false;
 						referencedRelation: 'projects';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: 'rewards_creator_id_fkey';
-						columns: ['creator_id'];
-						isOneToOne: false;
-						referencedRelation: 'profiles';
 						referencedColumns: ['id'];
 					}
 				];

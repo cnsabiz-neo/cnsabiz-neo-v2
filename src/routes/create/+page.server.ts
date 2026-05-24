@@ -86,7 +86,7 @@ export const actions: Actions = {
 			}
 		}
 
-		/** 리워드 저장 (creator_id 포함) */
+		/** 리워드 저장 */
 		let rewards: Array<{
 			title: string;
 			description: string;
@@ -100,7 +100,6 @@ export const actions: Actions = {
 		if (rewards.length > 0) {
 			const rewardRows = rewards.map((r, i) => ({
 				project_id:         project.id,
-				creator_id:         user.id,          // ← RLS 최적화용
 				title:              r.title,
 				description:        r.description || null,
 				amount:             r.amount,
@@ -109,7 +108,11 @@ export const actions: Actions = {
 				is_early_bird:      r.is_early_bird ?? false,
 				sort_order:         i
 			}));
-			await supabase.from('rewards').insert(rewardRows);
+			const { error: rewardErr } = await supabase.from('rewards').insert(rewardRows);
+			if (rewardErr) {
+				// 리워드 저장 실패 시 로그 (프로젝트 자체는 생성됨)
+				console.error('[create] 리워드 저장 실패:', rewardErr.message, rewardErr.code);
+			}
 		}
 
 		throw redirect(303, `/projects/${project.slug}?submitted=1`);
