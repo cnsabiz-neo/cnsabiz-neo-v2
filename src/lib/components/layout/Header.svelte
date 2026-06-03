@@ -1,15 +1,21 @@
 <script lang="ts">
 	import { getAuthContext } from '$lib/stores/auth.svelte';
 	import { page } from '$app/stores';
+	import { goto, invalidateAll } from '$app/navigation';
 	import logo from '$lib/assets/logo.png';
 
 	const auth = getAuthContext();
 
-	/** 현재 경로 기준으로 활성 탭 판단 */
-	const isHome = $derived($page.url.pathname === '/');
-
 	let moreOpen = $state(false);
-	let searchQuery = $state('');
+	let mobileOpen = $state(false);
+
+	/** 로그아웃 */
+	async function logout() {
+		mobileOpen = false;
+		await auth.supabase?.auth.signOut();
+		await invalidateAll();
+		await goto('/');
+	}
 
 	const navItems = [
 		{ label: '펀딩', plus: true, href: '/discover' },
@@ -120,17 +126,12 @@
 
 		<!-- 우측 액션 -->
 		<div class="flex items-center gap-1 shrink-0 ml-auto">
-			<!-- 국기 -->
-			<button class="hidden md:flex p-1.5 text-[#555] hover:text-[#1A1A1A] text-[13px] items-center gap-1 rounded hover:bg-[#F4F4F4]">
-				<span class="text-base leading-none">🇰🇷</span>
-			</button>
-
-			<!-- 좋아요 -->
-			<button class="p-1.5 text-[#555] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]" aria-label="찜 목록">
+			<!-- 찜 목록 -->
+			<a href="/my/likes" class="p-1.5 text-[#555] hover:text-[#FF5C35] rounded hover:bg-[#F4F4F4]" aria-label="찜 목록">
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
 				</svg>
-			</button>
+			</a>
 
 			<!-- 사용자 아이콘 -->
 			{#if auth.isLoggedIn}
@@ -146,20 +147,17 @@
 				<a href="/dashboard" class="hidden md:flex px-2 py-1 text-[13px] text-[#555] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]">
 					메이커홈
 				</a>
+				<button onclick={logout} class="hidden md:flex px-2 py-1 text-[13px] text-[#999] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]">
+					로그아웃
+				</button>
 			{:else}
-				<button class="p-1.5 text-[#555] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]" aria-label="로그인">
+				<a href="/auth/login" class="md:hidden p-1.5 text-[#555] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]" aria-label="로그인">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
 					</svg>
-				</button>
+				</a>
 				<a href="/auth/login" class="hidden md:inline-flex text-[13px] font-medium text-[#555] hover:text-[#1A1A1A] px-1">
 					로그인/회원가입
-				</a>
-				<a href="/dashboard" class="hidden md:flex items-center gap-1 px-2 py-1 text-[13px] text-[#555] hover:text-[#1A1A1A] rounded hover:bg-[#F4F4F4]">
-					<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-					</svg>
-					메이커홈
 				</a>
 			{/if}
 
@@ -169,11 +167,42 @@
 			</a>
 
 			<!-- 모바일 햄버거 -->
-			<button class="md:hidden p-1.5 text-[#555] hover:text-[#1A1A1A]" aria-label="메뉴">
+			<button onclick={() => mobileOpen = !mobileOpen} class="md:hidden p-1.5 text-[#555] hover:text-[#1A1A1A]" aria-label="메뉴">
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+					{#if mobileOpen}
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+					{:else}
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+					{/if}
 				</svg>
 			</button>
 		</div>
 	</div>
+
+	<!-- 모바일 메뉴 드로어 -->
+	{#if mobileOpen}
+		<button
+			class="md:hidden fixed inset-0 top-[56px] z-40 bg-black/30 cursor-default"
+			onclick={() => mobileOpen = false}
+			aria-label="메뉴 닫기"
+			tabindex="-1"
+		></button>
+		<nav class="md:hidden absolute left-0 right-0 top-[56px] z-50 bg-white border-b border-[#EBEBEB] shadow-lg px-4 py-3">
+			<a href="/discover" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">펀딩+</a>
+			<a href="/discover?tab=store" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">스토어</a>
+			<a href="/market" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">애프터 마켓</a>
+			<a href="/developers" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">개발자 소개</a>
+			<div class="border-t border-[#F0F0F0] my-2"></div>
+			<a href="/create" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#00C4C4]">프로젝트 만들기</a>
+			<a href="/my/likes" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">찜 목록</a>
+			{#if auth.isLoggedIn}
+				<a href="/my/fundings" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">내 후원 내역</a>
+				<a href="/my/profile" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">내 프로필</a>
+				<a href="/dashboard" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">메이커홈</a>
+				<button onclick={logout} class="block w-full text-left py-2.5 text-[15px] font-medium text-[#999] hover:text-[#1A1A1A]">로그아웃</button>
+			{:else}
+				<a href="/auth/login" onclick={() => mobileOpen = false} class="block py-2.5 text-[15px] font-medium text-[#1A1A1A] hover:text-[#00C4C4]">로그인 / 회원가입</a>
+			{/if}
+		</nav>
+	{/if}
 </header>

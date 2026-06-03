@@ -98,6 +98,18 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	const resolvedStoryHtml = (storyRes.data as { story_html: string | null } | null)?.story_html ?? null;
 
+	// 현재 사용자의 찜 여부
+	let isLiked = false;
+	if (user) {
+		const { data: like } = await supabase
+			.from('project_likes')
+			.select('project_id')
+			.eq('project_id', project.id)
+			.eq('user_id', user.id)
+			.maybeSingle();
+		isLiked = !!like;
+	}
+
 	return {
 		project,
 		storyHtml:  resolvedStoryHtml,
@@ -105,6 +117,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		updates:    (updatesRes.data ?? [])  as UpdateRow[],
 		comments:   (commentsRes.data ?? []) as unknown as CommentRow[],
 		isLoggedIn: !!session,
-		isOwner
+		isOwner,
+		isLiked
 	};
 };

@@ -2,9 +2,18 @@
 	import CampaignCard from '$lib/components/campaign/CampaignCard.svelte';
 	import CategoryNav from '$lib/components/campaign/CategoryNav.svelte';
 	import logo from '$lib/assets/logo.png';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 	const likedSet = $derived(new Set(data.likedIds ?? []));
+
+	/** 홈 검색 */
+	let searchQuery = $state('');
+	function submitSearch(e: SubmitEvent) {
+		e.preventDefault();
+		const q = searchQuery.trim();
+		goto(q ? `/discover?q=${encodeURIComponent(q)}` : '/discover');
+	}
 
 	/** 히어로 배너 슬라이더 */
 	let heroIdx = $state(0);
@@ -78,18 +87,19 @@
 ═══════════════════════════════════════════ -->
 <section class="bg-white border-b border-[#EBEBEB] py-4">
 	<div class="max-w-[1200px] mx-auto px-4 flex items-center justify-center">
-		<div class="w-full max-w-[640px] flex items-center border-2 border-[#CCCCCC] rounded-full px-5 py-3 bg-white hover:border-[#00C4C4] focus-within:border-[#00C4C4] transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
+		<form onsubmit={submitSearch} class="w-full max-w-[640px] flex items-center border-2 border-[#CCCCCC] rounded-full px-5 py-3 bg-white hover:border-[#00C4C4] focus-within:border-[#00C4C4] transition-colors shadow-[0_2px_8px_rgba(0,0,0,0.07)]">
 			<input
 				type="text"
-				placeholder="새로운 일상이 필요하신가요?"
+				bind:value={searchQuery}
+				placeholder="어떤 프로젝트를 찾으시나요?"
 				class="flex-1 text-[15px] outline-none placeholder-[#AAAAAA] text-[#1A1A1A] bg-transparent"
 			/>
-			<button class="ml-3 w-8 h-8 flex items-center justify-center rounded-full bg-[#00C4C4] hover:bg-[#00AFAF] transition-colors shrink-0">
+			<button type="submit" aria-label="검색" class="ml-3 w-8 h-8 flex items-center justify-center rounded-full bg-[#00C4C4] hover:bg-[#00AFAF] transition-colors shrink-0">
 				<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
 				</svg>
 			</button>
-		</div>
+		</form>
 	</div>
 </section>
 

@@ -42,6 +42,28 @@
 			await navigator.clipboard.writeText(location.href);
 		}
 	}
+
+	// ──────────── 찜하기 ────────────
+	let isLiked = $state(data.isLiked);
+	let likeLoading = $state(false);
+	$effect(() => { isLiked = data.isLiked; });
+
+	async function toggleLike() {
+		if (likeLoading) return;
+		likeLoading = true;
+		isLiked = !isLiked; // 낙관적 업데이트
+		try {
+			const res = await fetch(`/api/likes/${project.id}`, { method: 'POST' });
+			if (!res.ok) {
+				isLiked = !isLiked; // 롤백
+				if (res.status === 401) window.location.href = '/auth/login';
+			}
+		} catch {
+			isLiked = !isLiked; // 롤백
+		} finally {
+			likeLoading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -285,11 +307,15 @@
 							</svg>
 							공유
 						</button>
-						<button class="flex items-center gap-1.5 px-3 py-2 border border-[#EBEBEB] rounded-lg text-[12px] text-[#555] font-semibold hover:border-[#FF5050] hover:text-[#FF5050] transition-colors">
-							<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<button
+							onclick={toggleLike}
+							disabled={likeLoading}
+							class="flex items-center gap-1.5 px-3 py-2 border rounded-lg text-[12px] font-semibold transition-colors disabled:opacity-60
+								{isLiked ? 'border-[#FF5C35] text-[#FF5C35] bg-[#FFF3F0]' : 'border-[#EBEBEB] text-[#555] hover:border-[#FF5050] hover:text-[#FF5050]'}">
+							<svg class="w-3.5 h-3.5" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
 							</svg>
-							찜하기
+							{isLiked ? '찜함' : '찜하기'}
 						</button>
 					</div>
 
